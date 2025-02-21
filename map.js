@@ -5,7 +5,8 @@
 
 */
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm";
-
+const svg = d3.select('#map').select('svg');
+let stations = [];
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZm9saWNrcyIsImEiOiJjbTc5a3IwdG4wMWszMm1weWx4am5pNml1In0.fgO6EPaoZ2qcKxzwDof-6w';
 // Initialize the map
@@ -24,6 +25,17 @@ function getCoords(station) {
   const { x, y } = map.project(point);  // Project to pixel coordinates
   return { cx: x, cy: y };  // Return as object for use in SVG attributes
 }
+
+
+// Function to update circle positions when the map moves/zooms
+function updatePositions() {
+  circles
+    .attr('cx', d => getCoords(d).cx)  // Set the x-position using projected coordinates
+    .attr('cy', d => getCoords(d).cy); // Set the y-position using projected coordinates
+}
+
+// Initial position update when map loads
+updatePositions();
 
 map.on('load', () => {
   // Add bike route sources and layers
@@ -71,11 +83,20 @@ map.on('load', () => {
   });
 
 
-  map.project({
+  map.on('move', updatePositions);     // Update during map movement
+  map.on('zoom', updatePositions);     // Update during zooming
+  map.on('resize', updatePositions);   // Update on window resize
+  map.on('moveend', updatePositions);
 
 
-
-
-  })
+  const circles = svg.selectAll('circle')
+  .data(stations)
+  .enter()
+  .append('circle')
+  .attr('r', 5)               // Radius of the circle
+  .attr('fill', 'steelblue')  // Circle fill color
+  .attr('stroke', 'white')    // Circle border color
+  .attr('stroke-width', 1)    // Circle border thickness
+  .attr('opacity', 0.8);      // Circle opacity
 
 });
