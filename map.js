@@ -20,22 +20,8 @@ const map = new mapboxgl.Map({
   projection : 'globe'
 });
 
-function getCoords(station) {
-  const point = new mapboxgl.LngLat(+station.lon, +station.lat);  // Convert lon/lat to Mapbox LngLat
-  const { x, y } = map.project(point);  // Project to pixel coordinates
-  return { cx: x, cy: y };  // Return as object for use in SVG attributes
-}
 
 
-// Function to update circle positions when the map moves/zooms
-function updatePositions() {
-  circles
-    .attr('cx', d => getCoords(d).cx)  // Set the x-position using projected coordinates
-    .attr('cy', d => getCoords(d).cy); // Set the y-position using projected coordinates
-}
-
-// Initial position update when map loads
-updatePositions();
 
 map.on('load', () => {
   // Add bike route sources and layers
@@ -71,17 +57,52 @@ map.on('load', () => {
     }
   });
 
+
+
   // Load the nested JSON file
   const jsonurl = "https://dsc106.com/labs/lab07/data/bluebikes-stations.json";
+  /**
+ * icky function 
+ * 
+ */
+  
+  
   d3.json(jsonurl).then(jsonData => {
     console.log('Loaded JSON Data:', jsonData);  // Log to verify structure
-    const stations = jsonData.data.stations;  
+    stations = jsonData.data.stations;  // Assign the stations data to the global variable
     console.log('Stations Array:', stations);  // Log stations to verify
-    // You can now use the stations data as needed
-  }).catch(error => {
-    console.error('Error loading JSON:', error);  // Handle errors if JSON loading fails
-  });
 
+    // Create the SVG circles after the data is loaded
+    const circles = svg.selectAll('circle')
+      .data(stations)
+      .enter()
+      .append('circle')
+      .attr('r', 5)               // Radius of the circle
+      .attr('fill', 'steelblue')  // Circle fill color
+      .attr('stroke', 'white')    // Circle border color
+      .attr('stroke-width', 1)    // Circle border thickness
+      .attr('opacity', 0.8);      // Circle opacity
+
+    // Function to update circle positions when the map moves/zooms
+    function updatePositions() {
+      circles
+        .attr('cx', d => getCoords(d).cx)  // Set the x-position using projected coordinates
+        .attr('cy', d => getCoords(d).cy); // Set the y-position using projected coordinates
+    }
+    updatePositions();
+  
+  
+  
+
+
+  function getCoords(station) {
+    const point = new mapboxgl.LngLat(+station.lon, +station.lat);  // Convert lon/lat to Mapbox LngLat
+    const { x, y } = map.project(point);  // Project to pixel coordinates
+    return { cx: x, cy: y };  // Return as object for use in SVG attributes
+  }
+  
+
+  
 
   map.on('move', updatePositions);     // Update during map movement
   map.on('zoom', updatePositions);     // Update during zooming
@@ -89,14 +110,11 @@ map.on('load', () => {
   map.on('moveend', updatePositions);
 
 
-  const circles = svg.selectAll('circle')
-  .data(stations)
-  .enter()
-  .append('circle')
-  .attr('r', 5)               // Radius of the circle
-  .attr('fill', 'steelblue')  // Circle fill color
-  .attr('stroke', 'white')    // Circle border color
-  .attr('stroke-width', 1)    // Circle border thickness
-  .attr('opacity', 0.8);      // Circle opacity
 
 });
+
+});
+
+
+
+
