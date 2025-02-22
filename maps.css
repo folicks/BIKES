@@ -24,3 +24,10 @@ border-radius: 8px; /* Optional: rounded corners */
   height: 100%; /* Make the SVG fill the height of the map container */
   pointer-events: none; /* Allow interactions with the map underneath */
 }
+
+#map svg circle {
+  fill: steelblue; /* Set the fill color to steelblue */
+  fill-opacity: 0.6; /* Set the fill opacity to 60% */
+  stroke: white; /* Set the stroke color to white */
+  stroke-width: 2; /* Set the stroke width */
+}

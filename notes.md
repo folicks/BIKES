@@ -9,11 +9,14 @@ You can experiment with other layer types like 'fill', 'circle', or 'symbol' dep
 | questions      | answer     |
 | ------------- | ------------- |
 | do the same procedure of boston on cambridge | chang ethe id to respective objects on the Map |
-| why is id the way of making variables with "unique"  | Cell 1, Row 2 |
-| how come i couldn't access the jsonData from outside the d3 block?  | Cell 1, Row 2 |
+| why is id the way of making variables with "unique"  | see map documentation? |
+| how come i couldn't access the jsonData from outside the d3 block?  | the jsonData possessed the "await" type being in this =>{} (?) |
 | how is the updatePositions causing the entire map.on to not run  | Cell 1, Row 2 |
 
-```
+
+
+
+```javascript
 
 function updatePositions() {
   circles
