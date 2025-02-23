@@ -32,3 +32,30 @@ border-radius: 8px; /* Optional: rounded corners */
   pointer-events: auto;
   
 }
+
+header {
+  display: flex;
+  gap: 1em;
+  align-items: baseline;
+}
+
+#time-display {
+  display: block;
+}
+
+#time-display em {
+  color: #aaa;
+  font-style: italic;
+}
+
+#time-filter {
+  width: 200px;
+}
+
+#time-display {
+  display: block;
+}
+#any-time {
+  color: #888; /* lighter color */
+  font-style: italic;
+}
