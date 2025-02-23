@@ -7,7 +7,13 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm";
 const svg = d3.select('#map').select('svg');
 let stations = [];
-let tripsData = [];
+let filteredTrips = [];
+let filteredArrivals = new Map();
+let filteredDepartures = new Map();
+let filteredStations = [];
+
+
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiZm9saWNrcyIsImEiOiJjbTc5a3IwdG4wMWszMm1weWx4am5pNml1In0.fgO6EPaoZ2qcKxzwDof-6w';
 // Initialize the map
 const map = new mapboxgl.Map({
@@ -171,32 +177,7 @@ map.on('load', () => {
     map.on('resize', updatePositions);   // Update on window resize
     map.on('moveend', updatePositions);
   
-    let timeFilter = -1;
-    const timeSlider = document.getElementById('time-filter');
-    const selectedTime = document.getElementById('selected-time');
-    const anyTimeLabel = document.getElementById('any-time');
-
-    function formatTime(minutes) {
-      const date = new Date(0, 0, 0, 0, minutes);  // Set hours & minutes
-      return date.toLocaleString('en-US', { timeStyle: 'short' }); // Format as HH:MM AM/PM
-    }
-
-    function updateTimeDisplay() {
-      timeFilter = Number(timeSlider.value);  // Get slider value
     
-      if (timeFilter === -1) {
-        selectedTime.textContent = '';  // Clear time display
-        anyTimeLabel.style.display = 'block';  // Show "(any time)"
-      } else {
-        selectedTime.textContent = formatTime(timeFilter);  // Display formatted time
-        anyTimeLabel.style.display = 'none';  // Hide "(any time)"
-      }
-    
-      // Trigger filtering logic which will be implemented in the next step
-    }
-
-    timeSlider.addEventListener('input', updateTimeDisplay);
-    updateTimeDisplay();
     // //previous code
   
     // //add THIS code
@@ -211,15 +192,44 @@ map.on('load', () => {
 
 });
 
+let timeFilter = -1;
+const timeSlider = document.getElementById('time-filter');
+const selectedTime = document.getElementById('selected-time');
+const anyTimeLabel = document.getElementById('any-time');
+
+function formatTime(minutes) {
+    const date = new Date(0, 0, 0, Math.floor(minutes/60), minutes%60);
+    return date.toLocaleString('en-US', { timeStyle: 'short' });
+}
+
+function updateTimeDisplay() {
+    timeFilter = Number(timeSlider.value);
+    
+    if (timeFilter === -1) {
+        selectedTime.textContent = '';
+        anyTimeLabel.style.display = 'block';
+    } else {
+        selectedTime.textContent = formatTime(timeFilter);
+        anyTimeLabel.style.display = 'none';
+    }
+    updateVisualizations(); // This will trigger the filtering
+}
+
+// Add this after your map initialization
+document.addEventListener('DOMContentLoaded', () => {
+    timeSlider.addEventListener('input', updateTimeDisplay);
+    updateTimeDisplay();
+});
+
 
 
 
 
 
 // Filter trips based on start time
-const filteredTrips = trips.filter((trip) => {
-  const startTime = new Date(trip.start_time);
-  const startTimeMinutes = startTime.getHours() * 60 + startTime.getMinutes();
-  return time === -1 || startTimeMinutes >= time;
-});
+// const filteredTrips = trips.filter((trip) => {
+//   const startTime = new Date(trip.start_time);
+//   const startTimeMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+//   return time === -1 || startTimeMinutes >= time;
+// });
 
