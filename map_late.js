@@ -7,12 +7,7 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm";
 const svg = d3.select('#map').select('svg');
 let stations = [];
-let filteredTrips = [];
-let filteredArrivals = new Map();
-let filteredDepartures = new Map();
-let filteredStations = [];
-
-
+let timeFilter = -1;
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZm9saWNrcyIsImEiOiJjbTc5a3IwdG4wMWszMm1weWx4am5pNml1In0.fgO6EPaoZ2qcKxzwDof-6w';
 // Initialize the map
@@ -27,12 +22,87 @@ const map = new mapboxgl.Map({
 });
 
 
+function computeStationTraffic(stations, trips) {
+  // Compute departures
+  const departures = d3.rollup(
+      trips, 
+      (v) => v.length, 
+function computeStationTraffic(stations, trips) {
+  // Compute departures
+  d3.rollup(
+      trips, 
+      (v) => v.length, 
+      (d) => d.start_station_id
+  );
+
+  // Computed arrivals as you did in step 4.2
+  const arrivals = d3.rollup(
+    trips,
+    (v) => v.length,
+    (d) => d.end_station_id
+  );
+
+  // Update each station..
+  return stations.map((station) => {
+    let id = station.short_name;
+    station.arrivals = arrivals.get(id) ?? 0;
+    station.departures = departures.get(id) ?? 0;
+    station.totalTraffic = (station.arrivals + station.departures);
+    return station;
+});
+});
+
+
+
+function updateScatterPlot(timeFilter) {
+    // Get only the trips that match the selected time filter
+    const filteredTrips = filterTripsbyTime(trips, timeFilter);
+    
+    // Recompute station traffic based on the filtered trips
+    const filteredStations = computeStationTraffic(stations, filteredTrips);
+    
+
+    timeFilter === -1 ? radiusScale.range([0, 25]) : radiusScale.range([3, 50]);
+
+    // Update the scatterplot by adjusting the radius of circles
+    circles
+      .data(filteredStations, (d) => d.short_name)
+      .join('circle') // Ensure the data is bound correctly
+      .attr('r', (d) => radiusScale(d.totalTraffic)); // Update circle sizes
+}
+
+
+function updateVisualizations() {
+    // This function will update the map based on the time filter
+    // You'll need to implement the logic to filter and display the data
+    console.log("updateVisualizations called with timeFilter:", timeFilter);
+    updateScatterPlot(timeFilter);
+  }
+
+
+  function updateTimeDisplay() {
+    let timeFilter = Number(timeSlider.value); // Get slider value
+  
+    if (timeFilter === -1) {
+      selectedTime.textContent = ''; // Clear time display
+      anyTimeLabel.style.display = 'block'; // Show "(any time)"
+    } else {
+      selectedTime.textContent = formatTime(timeFilter); // Display formatted time
+      anyTimeLabel.style.display = 'none'; // Hide "(any time)"
+    }
+    
+    // Call updateScatterPlot to reflect the changes on the map
+    updateScatterPlot(timeFilter);
+  }
+
+
 
 
 
 
 map.on('load', () => {
-  // Add bike route sources and layers
+
+
   map.addSource('boston_route', {
     type: 'geojson',
     data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson?...'
@@ -72,33 +142,100 @@ map.on('load', () => {
   // Load the nested JSON file
   const jsonurl = "https://dsc106.com/labs/lab07/data/bluebikes-stations.json";
 
+
+  
   /**
  * icky function 
  * 
  */
+
+
+
   
-  
-  d3.json(jsonurl).then(jsonData => {
+  d3.json(jsonurl).then(async jsonData => {
 
 
     // use these functions below if the website goes dead or something
 
     // console.log('Loaded JSON Data:', jsonData);  // Log to verify structure
-    stations = jsonData.data.stations;  // Assign the stations data to the global variable
+    // stations = jsonData.data.stations;  // Assign the stations data to the global variable
     // console.log('Stations Array:', stations);  // Log stations to verify
 
-    
 
-    
-  
-  
+
   
 
 
   
 
 
-  const trips = 'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv'
+  // const trips = 'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv'
+
+  // im not sure whether to not use the previous const version of this data
+
+
+  let trips = await d3.csv(
+    'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv',
+    (trip) => {
+      trip.started_at = new Date(trip.started_at);
+      trip.ended_at = new Date(trip.ended_at);
+      return trip;
+    },
+  );
+
+    stations = computeStationTraffic(jsonData.data.stations, trips);
+});
+
+
+
+  function minutesSinceMidnight(date) {
+    return date.getHours() * 60 + date.getMinutes();
+  }
+
+
+
+  function filterTripsbyTime(trips, timeFilter) {
+    return timeFilter === -1 
+      ? trips // If no filter is applied (-1), return all trips
+      : trips.filter((trip) => {
+          // Convert trip start and end times to minutes since midnight
+          const startedMinutes = minutesSinceMidnight(trip.started_at);
+          const endedMinutes = minutesSinceMidnight(trip.ended_at);
+          
+          // Include trips that started or ended within 60 minutes of the selected time
+          return (
+            Math.abs(startedMinutes - timeFilter) <= 60 ||
+            Math.abs(endedMinutes - timeFilter) <= 60
+          );
+      });
+  }
+
+  
+
+
+
+
+function filterTripsbyTime(trips, timeFilter) {
+  return timeFilter === -1 
+    ? trips // If no filter is applied (-1), return all trips
+    : trips.filter((trip) => {
+        // Convert trip start and end times to minutes since midnight
+        const startedMinutes = minutesSinceMidnight(trip.started_at);
+        const endedMinutes = minutesSinceMidnight(trip.ended_at);
+        
+        // Include trips that started or ended within 60 minutes of the selected time
+        return (
+          Math.abs(startedMinutes - timeFilter) <= 60 ||
+          Math.abs(endedMinutes - timeFilter) <= 60
+        );
+    });
+}
+
+
+function minutesSinceMidnight(date) {
+  return date.getHours() * 60 + date.getMinutes();
+}
+
 
   d3.csv(trips).then(trips => {
 
@@ -140,7 +277,7 @@ map.on('load', () => {
 
   // Create the SVG circles after the data is loaded and processed
     const circles = svg.selectAll('circle')
-      .data(stations)
+      .data(stations, (d) => d.short_name)
       .enter()
       .append('circle')
       .attr('r', (d) => radiusScale(d.totalTraffic)) // Radius now based on scaled totalTraffic
@@ -177,7 +314,10 @@ map.on('load', () => {
     map.on('resize', updatePositions);   // Update on window resize
     map.on('moveend', updatePositions);
   
-    
+    document.addEventListener('DOMContentLoaded', () => {
+        timeSlider.addEventListener('input', updateTimeDisplay);
+        updateTimeDisplay();
+    });
     // //previous code
   
     // //add THIS code
@@ -186,13 +326,12 @@ map.on('load', () => {
     //   trip.started_at = new Date(trip.start_time);
     //   // do the same for end
     // }
-  });
-
-  });
-
 });
 
-let timeFilter = -1;
+});}
+
+
+// let timeFilter = -1;
 const timeSlider = document.getElementById('time-filter');
 const selectedTime = document.getElementById('selected-time');
 const anyTimeLabel = document.getElementById('any-time');
@@ -201,6 +340,14 @@ function formatTime(minutes) {
     const date = new Date(0, 0, 0, Math.floor(minutes/60), minutes%60);
     return date.toLocaleString('en-US', { timeStyle: 'short' });
 }
+
+// function updateVisualizations() {
+//   // This function will update the map based on the time filter
+//   // You'll need to implement the logic to filter and display the data
+//   console.log("updateVisualizations called with timeFilter:", timeFilter);
+//   updateScatterPlot(timeFilter);
+// }
+
 
 function updateTimeDisplay() {
     timeFilter = Number(timeSlider.value);
@@ -214,12 +361,6 @@ function updateTimeDisplay() {
     }
     updateVisualizations(); // This will trigger the filtering
 }
-
-// Add this after your map initialization
-document.addEventListener('DOMContentLoaded', () => {
-    timeSlider.addEventListener('input', updateTimeDisplay);
-    updateTimeDisplay();
-});
 
 
 
