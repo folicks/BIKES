@@ -22,26 +22,23 @@ const map = new mapboxgl.Map({
 });
 
 
+
 function computeStationTraffic(stations, trips) {
   // Compute departures
   const departures = d3.rollup(
-      trips, 
-      (v) => v.length, 
-function computeStationTraffic(stations, trips) {
-  // Compute departures
-  d3.rollup(
-      trips, 
-      (v) => v.length, 
-      (d) => d.start_station_id
-  );
+    trips, 
+    (v) => v.length, 
+    (d) => d.start_station_id
+);
 
   // Computed arrivals as you did in step 4.2
-  const arrivals = d3.rollup(
-    trips,
-    (v) => v.length,
-    (d) => d.end_station_id
-  );
-
+  stations = stations.map((station) => {
+    let id = station.short_name;
+    station.arrivals = arrivals.get(id) ?? 0;
+    station.departures = departures.get(id) ?? 0;
+    station.totalTraffic = (station.arrivals + station.departures);
+    return station;
+  });
   // Update each station..
   return stations.map((station) => {
     let id = station.short_name;
@@ -50,7 +47,7 @@ function computeStationTraffic(stations, trips) {
     station.totalTraffic = (station.arrivals + station.departures);
     return station;
 });
-});
+};
 
 
 
@@ -328,7 +325,7 @@ function minutesSinceMidnight(date) {
     // }
 });
 
-});}
+});
 
 
 // let timeFilter = -1;
