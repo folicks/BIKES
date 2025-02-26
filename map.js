@@ -6,6 +6,8 @@ let timeFilter = -1;
 let trips = []; // Declare trips in a broader scope
 let radiusScale; // Declare radiusScale in a broader scope
 let circles;
+let stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
+
 
 function computeStationTraffic(stations, trips) {
     const departures = d3.rollup(
@@ -107,7 +109,10 @@ function updateScatterPlot(timeFilter) {
   circles
     .data(filteredStations, (d) => d.short_name)
     .join('circle') // Ensure the data is bound correctly
-    .attr('r', (d) => radiusScale(d.totalTraffic)); // Update circle sizes
+    .attr('r', (d) => radiusScale(d.totalTraffic)) // Update circle sizes
+    .style('--departure-ratio', (d) =>
+      stationFlow(d.departures / d.totalTraffic),
+    );
   }
 
 map.on('load', async () => {
@@ -168,6 +173,7 @@ map.on('load', async () => {
             .data(stations, (d) => d.short_name)
             .enter()
             .append('circle')
+            .style("--departure-ratio", d => stationFlow(d.departures / d.totalTraffic))
             .attr('r', (d) => radiusScale(d.totalTraffic)) // Radius now based on scaled totalTraffic
             .attr('fill', 'steelblue')  // Circle fill color
             .attr('stroke', 'white')    // Circle border color
