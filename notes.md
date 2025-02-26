@@ -31,3 +31,58 @@ map.on('load', () =>
 ```
 
 
+____
+
+where to put this
+
+```javascript
+const stations = computeStationTraffic(jsonData.data.stations, trips);
+```
+
+should this replace former usage of d3.csv
+```javascript
+let trips = await d3.csv(
+  'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv',
+  (trip) => {
+    trip.started_at = new Date(trip.started_at);
+    trip.ended_at = new Date(trip.ended_at);
+    return trip;
+  },
+);
+```
+
+
+
+GOAL get timeFilter variable to this function where the "mouseover" can still happen
+```javascript
+
+function updateScatterPlot(timeFilter) {
+    // Get only the trips that match the selected time filter
+    const filteredTrips = filterTripsbyTime(trips, timeFilter);
+    
+    // Recompute station traffic based on the filtered trips
+    const filteredStations = computeStationTraffic(stations, filteredTrips);
+    
+    // Update the scatterplot by adjusting the radius of circles
+    circles
+      .data(filteredStations)
+      .join('circle') // Ensure the data is bound correctly
+      .attr('r', (d) => radiusScale(d.totalTraffic)); // Update circle sizes
+}
+
+
+function updateTimeDisplay() {
+    let timeFilter = Number(timeSlider.value); // Get slider value
+
+    if (timeFilter === -1) {
+      selectedTime.textContent = ''; // Clear time display
+      anyTimeLabel.style.display = 'block'; // Show "(any time)"
+    } else {
+      selectedTime.textContent = formatTime(timeFilter); // Display formatted time
+      anyTimeLabel.style.display = 'none'; // Hide "(any time)"
+    }
+    
+    // Call updateScatterPlot to reflect the changes on the map
+    updateScatterPlot(timeFilter);
+}
+```
