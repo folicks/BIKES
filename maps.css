@@ -10,7 +10,7 @@ html, body {
   }
      
 #map {
-
+position: relative;
 width: 75%;    /* Adjust width to your desired size */
 height: 75%;   /* Adjust height to your desired size */
 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow for effect */
@@ -22,6 +22,8 @@ border-radius: 8px; /* Optional: rounded corners */
   z-index: 1; /* Ensure the SVG is on top of other elements */
   width: 100%; /* Make the SVG fill the width of the map container */
   height: 100%; /* Make the SVG fill the height of the map container */
+  pointer-events: none;
+  z-index: 1;
 }
 
 #map svg circle {
