@@ -30,6 +30,14 @@ border-radius: 8px; /* Optional: rounded corners */
   stroke: white; /* Set the stroke color to white */
   stroke-width: 2; /* Set the stroke width */
   pointer-events: auto;
+  --color-departures: steelblue;
+  --color-arrivals: darkorange;
+  --color: color-mix(
+    in oklch,
+    var(--color-departures) calc(100% * var(--departure-ratio)),
+    var(--color-arrivals)
+  );
+  fill: var(--color);
   
 }
 
@@ -58,4 +66,44 @@ header {
 #any-time {
   color: #888; /* lighter color */
   font-style: italic;
+}
+:root {
+  --color-departures: steelblue; /* Color for more departures */
+  --color-arrivals: orange;      /* Color for more arrivals */
+  --color-balanced: purple;      /* Color for balanced */
+  --color-balanced: hsl(270, 50%, 50%);     /* Color for balanced */
+  --color: black;                /* Example color for text */
+}
+
+/* Apply the color variables to both #map circle and .legend > div */
+#map circle {
+  color: var(--color);
+}
+
+/* Style the legend container with flexbox and margin-block */
+.legend {
+  display: flex;
+  justify-content: space-around; /* Align items horizontally with space around them */
+  margin-block: 1rem; /* Add space above and below the legend */
+}
+
+/* Style each legend item based on the --departure-ratio */
+.legend > div {
+  position: relative;
+  padding: 0.5rem;
+  border: 1px solid var(--color);
+  width: 30%; /*  Adjust the width as needed */
+  text-align: center; /* Center the text */
+}
+
+.legend > div:nth-child(1) {
+  background-color: var(--color-departures); /* More departures */
+}
+
+.legend > div:nth-child(2) {
+  background-color: var(--color-balanced); /* Balanced */
+}
+
+.legend > div:nth-child(3) {
+  background-color: var(--color-arrivals); /* More arrivals */
 }
